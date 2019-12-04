@@ -38,6 +38,8 @@ let documentListenerAdded: boolean = false;
 let initialClientY: number = -1;
 let previousBodyOverflowSetting;
 let previousBodyPaddingRight;
+
+let previousPaddedElements;
 let scrollLockActive = false;
 
 // returns true if `el` should be allowed to receive touchmove events.
@@ -83,6 +85,7 @@ const setOverflowHidden = (options?: BodyScrollOptions) => {
         document.body.style.paddingRight = `${scrollBarGap}px`;
 
         if (options.paddedElements) {
+          previousPaddedElements = options.paddedElements;
           options.paddedElements.forEach(el => {
             el.setAttribute('data-previous-padding', el.style.paddingRight || 0);
             el.style.paddingRight = `${scrollBarGap}px`;
@@ -113,8 +116,8 @@ const restoreOverflowSetting = () => {
       previousBodyPaddingRight = undefined;
     }
 
-    if (options.paddedElements) {
-      options.paddedElements.forEach(el => {
+    if (Array.isArray(previousPaddedElements)) {
+      previousPaddedElements.forEach(el => {
         if (el.getAttribute('data-previous-padding') > 0) {
           el.style.paddingRight = `${el.getAttribute('data-previous-padding')}px`;
         }
