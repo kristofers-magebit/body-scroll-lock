@@ -33,6 +33,7 @@ const isIosDevice =
   /iP(ad|hone|od)/.test(window.navigator.platform);
 type HandleScrollEvent = TouchEvent;
 
+let defaultOptions: BodyScrollOptions = {};
 let locks: Array<Lock> = [];
 let documentListenerAdded: boolean = false;
 let initialClientY: number = -1;
@@ -161,11 +162,22 @@ const handleScroll = (event: HandleScrollEvent, targetElement: any): boolean => 
   return true;
 };
 
-export const bodyScrollLockActive = (): boolean => {
+export const isScrollLockActive = (): boolean => {
   return scrollLockActive;
 };
 
+export const setDefaultOptions = (options: BodyScrollOptions): void => {
+  defaultOptions = Object.assign(defaultOptions, options);
+  return defaultOptions;
+};
+
 export const disableBodyScroll = (targetElement: any, options?: BodyScrollOptions): void => {
+  if (options) {
+    options = Object.assign(defaultOptions, options);
+  } else {
+    options = defaultOptions;
+  }
+
   if (isIosDevice) {
     // targetElement must be provided, and disableBodyScroll must not have been
     // called on this targetElement before.
