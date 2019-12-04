@@ -4,6 +4,7 @@
 
 export interface BodyScrollOptions {
   reserveScrollBarGap?: boolean;
+  paddedElements?: any[];
   allowTouchMove?: (el: any) => boolean;
 }
 
@@ -37,6 +38,7 @@ let documentListenerAdded: boolean = false;
 let initialClientY: number = -1;
 let previousBodyOverflowSetting;
 let previousBodyPaddingRight;
+let scrollLockActive = false;
 
 // returns true if `el` should be allowed to receive touchmove events.
 const allowTouchMove = (el: EventTarget): boolean =>
@@ -79,6 +81,13 @@ const setOverflowHidden = (options?: BodyScrollOptions) => {
       if (reserveScrollBarGap && scrollBarGap > 0) {
         previousBodyPaddingRight = document.body.style.paddingRight;
         document.body.style.paddingRight = `${scrollBarGap}px`;
+
+        if (options.paddedElements) {
+          options.paddedElements.forEach(el => {
+            el.setAttribute('data-previous-padding', el.style.paddingRight || 0);
+            el.style.paddingRight = `${scrollBarGap}px`;
+          });
+        }
       }
     }
 
@@ -87,6 +96,8 @@ const setOverflowHidden = (options?: BodyScrollOptions) => {
       previousBodyOverflowSetting = document.body.style.overflow;
       document.body.style.overflow = 'hidden';
     }
+
+    scrollLockActive = true;
   });
 };
 
@@ -102,6 +113,14 @@ const restoreOverflowSetting = () => {
       previousBodyPaddingRight = undefined;
     }
 
+    if (options.paddedElements) {
+      options.paddedElements.forEach(el => {
+        if (el.getAttribute('data-previous-padding') > 0) {
+          el.style.paddingRight = `${el.getAttribute('data-previous-padding')}px`;
+        }
+      });
+    }
+
     if (previousBodyOverflowSetting !== undefined) {
       document.body.style.overflow = previousBodyOverflowSetting;
 
@@ -109,6 +128,8 @@ const restoreOverflowSetting = () => {
       // so setOverflowHidden knows it can be set again.
       previousBodyOverflowSetting = undefined;
     }
+
+    scrollLockActive = false;
   });
 };
 
@@ -135,6 +156,10 @@ const handleScroll = (event: HandleScrollEvent, targetElement: any): boolean => 
 
   event.stopPropagation();
   return true;
+};
+
+export const bodyScrollLockActive = (): boolean => {
+  return scrollLockActive;
 };
 
 export const disableBodyScroll = (targetElement: any, options?: BodyScrollOptions): void => {
