@@ -122,6 +122,8 @@ const restoreOverflowSetting = () => {
         if (el.getAttribute('data-previous-padding') > 0) {
           el.style.paddingRight = `${el.getAttribute('data-previous-padding')}px`;
         }
+
+        el.removeAttribute('data-previous-padding');
       });
     }
 
