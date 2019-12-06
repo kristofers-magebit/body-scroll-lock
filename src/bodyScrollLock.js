@@ -166,13 +166,13 @@ export const isScrollLockActive = (): boolean => {
 };
 
 export const setDefaultOptions = (options: BodyScrollOptions): void => {
-  defaultOptions = Object.assign(defaultOptions, options);
+  defaultOptions = { ...defaultOptions, ...options };
   return defaultOptions;
 };
 
 export const disableBodyScroll = (targetElement: any, options?: BodyScrollOptions): void => {
   if (options) {
-    options = Object.assign(defaultOptions, options);
+    options = { ...defaultOptions, ...options };
   } else {
     options = defaultOptions;
   }
