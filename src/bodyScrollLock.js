@@ -5,6 +5,7 @@
 export interface BodyScrollOptions {
   reserveScrollBarGap?: boolean;
   paddedElements?: any[];
+  addBodyClass?: boolean;
   allowTouchMove?: (el: any) => boolean;
 }
 
@@ -101,6 +102,10 @@ const setOverflowHidden = (options?: BodyScrollOptions) => {
       document.body.style.overflow = 'hidden';
     }
 
+    if (options.addBodyClass) {
+      document.body.classList.add('body-scroll-lock');
+    }
+
     scrollLockActive = true;
   });
 };
@@ -132,6 +137,7 @@ const restoreOverflowSetting = () => {
       previousBodyOverflowSetting = undefined;
     }
 
+    document.body.classList.remove('body-scroll-lock');
     scrollLockActive = false;
   });
 };
