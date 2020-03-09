@@ -5,6 +5,7 @@
 export interface BodyScrollOptions {
   reserveScrollBarGap?: boolean;
   paddedElements?: any[];
+  addBodyClass?: boolean;
   allowTouchMove?: (el: any) => boolean;
 }
 
@@ -33,11 +34,14 @@ const isIosDevice =
   /iP(ad|hone|od)/.test(window.navigator.platform);
 type HandleScrollEvent = TouchEvent;
 
+let defaultOptions: BodyScrollOptions = {};
 let locks: Array<Lock> = [];
 let documentListenerAdded: boolean = false;
 let initialClientY: number = -1;
 let previousBodyOverflowSetting;
 let previousBodyPaddingRight;
+
+let previousPaddedElements;
 let scrollLockActive = false;
 
 // returns true if `el` should be allowed to receive touchmove events.
@@ -83,8 +87,9 @@ const setOverflowHidden = (options?: BodyScrollOptions) => {
         document.body.style.paddingRight = `${scrollBarGap}px`;
 
         if (options.paddedElements) {
+          previousPaddedElements = options.paddedElements;
           options.paddedElements.forEach(el => {
-            el.setAttribute('data-previous-padding', el.style.paddingRight || 0);
+            el.setAttribute('data-previous-padding', el.style.paddingRight || '0px');
             el.style.paddingRight = `${scrollBarGap}px`;
           });
         }
@@ -95,6 +100,10 @@ const setOverflowHidden = (options?: BodyScrollOptions) => {
     if (previousBodyOverflowSetting === undefined) {
       previousBodyOverflowSetting = document.body.style.overflow;
       document.body.style.overflow = 'hidden';
+    }
+
+    if (options.addBodyClass) {
+      document.body.classList.add('body-scroll-lock');
     }
 
     scrollLockActive = true;
@@ -113,11 +122,10 @@ const restoreOverflowSetting = () => {
       previousBodyPaddingRight = undefined;
     }
 
-    if (options.paddedElements) {
-      options.paddedElements.forEach(el => {
-        if (el.getAttribute('data-previous-padding') > 0) {
-          el.style.paddingRight = `${el.getAttribute('data-previous-padding')}px`;
-        }
+    if (Array.isArray(previousPaddedElements)) {
+      previousPaddedElements.forEach(el => {
+        el.style.paddingRight = el.getAttribute('data-previous-padding');
+        el.removeAttribute('data-previous-padding');
       });
     }
 
@@ -129,6 +137,7 @@ const restoreOverflowSetting = () => {
       previousBodyOverflowSetting = undefined;
     }
 
+    document.body.classList.remove('body-scroll-lock');
     scrollLockActive = false;
   });
 };
@@ -158,11 +167,22 @@ const handleScroll = (event: HandleScrollEvent, targetElement: any): boolean => 
   return true;
 };
 
-export const bodyScrollLockActive = (): boolean => {
+export const isScrollLockActive = (): boolean => {
   return scrollLockActive;
 };
 
+export const setDefaultOptions = (options: BodyScrollOptions): void => {
+  defaultOptions = { ...defaultOptions, ...options };
+  return defaultOptions;
+};
+
 export const disableBodyScroll = (targetElement: any, options?: BodyScrollOptions): void => {
+  if (options) {
+    options = { ...defaultOptions, ...options };
+  } else {
+    options = defaultOptions;
+  }
+
   if (isIosDevice) {
     // targetElement must be provided, and disableBodyScroll must not have been
     // called on this targetElement before.
